@@ -67,6 +67,111 @@ app.use('*', cors());
 // Health check
 app.get('/health', (c) => c.json({ status: 'ok' }));
 
+// Privacy Policy
+app.get('/privacy-policy', (c) => {
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy - SlopWatch</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #15202b;
+      color: #e7e9ea;
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #ef4444;
+      margin-bottom: 8px;
+    }
+    .updated {
+      color: #8b98a5;
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+    h2 {
+      color: #e7e9ea;
+      margin-top: 32px;
+      margin-bottom: 16px;
+      font-size: 20px;
+    }
+    p, li {
+      color: #8b98a5;
+      margin-bottom: 16px;
+    }
+    ul {
+      padding-left: 24px;
+    }
+    li {
+      margin-bottom: 8px;
+    }
+    a {
+      color: #ef4444;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>SlopWatch Privacy Policy</h1>
+    <p class="updated">Last updated: January 12, 2026</p>
+
+    <h2>Overview</h2>
+    <p>SlopWatch is a browser extension that allows users to collectively identify AI-generated content ("slop") on X.com (Twitter). We are committed to protecting your privacy and being transparent about our data practices.</p>
+
+    <h2>Data We Collect</h2>
+    <ul>
+      <li><strong>Anonymous User ID:</strong> When you install the extension, a random 32-character identifier is generated and stored locally in your browser. This ID is not linked to your identity, email, or any personal information.</li>
+      <li><strong>Vote Data:</strong> When you vote on a post, we store the post's ID (a public Twitter/X identifier) and your anonymous user ID to prevent duplicate voting.</li>
+    </ul>
+
+    <h2>Data We Do NOT Collect</h2>
+    <ul>
+      <li>Your name, email, or any personal information</li>
+      <li>Your Twitter/X username or account information</li>
+      <li>Your browsing history</li>
+      <li>The content of posts you view</li>
+      <li>Any data from sites other than X.com/Twitter.com</li>
+    </ul>
+
+    <h2>How We Use Your Data</h2>
+    <p>Vote data is used solely to:</p>
+    <ul>
+      <li>Display aggregate vote counts to all users</li>
+      <li>Prevent the same user from voting multiple times on the same post</li>
+      <li>Enable the auto-hide feature based on vote thresholds</li>
+    </ul>
+
+    <h2>Data Storage</h2>
+    <p>Vote data is stored on our servers. Your anonymous user ID is stored locally in your browser using Chrome's storage API.</p>
+
+    <h2>Data Sharing</h2>
+    <p>We do not sell, trade, or share your data with third parties. Aggregate vote counts are visible to all extension users.</p>
+
+    <h2>Data Retention</h2>
+    <p>Vote data is retained indefinitely to maintain accurate community vote counts. You can reset your anonymous user ID by reinstalling the extension.</p>
+
+    <h2>Your Rights</h2>
+    <p>Since we only collect anonymous data, there is no personal data to access, modify, or delete. Uninstalling the extension removes your local user ID.</p>
+
+    <h2>Changes to This Policy</h2>
+    <p>We may update this privacy policy from time to time. Changes will be reflected on this page with an updated date.</p>
+
+    <h2>Contact</h2>
+    <p>For questions about this privacy policy, please open an issue on our <a href="https://github.com/offmylawn101/slopwatch">GitHub repository</a>.</p>
+  </div>
+</body>
+</html>`;
+  return c.html(html);
+});
+
 // Vote toggle
 app.post('/vote', async (c) => {
   const body = await c.req.json<{ tweetId?: string; userId?: string }>();
