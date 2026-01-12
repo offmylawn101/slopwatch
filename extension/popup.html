@@ -10,7 +10,7 @@
     }
 
     body {
-      width: 300px;
+      width: 320px;
       padding: 16px;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: #15202b;
@@ -21,7 +21,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
 
     .header h1 {
@@ -32,14 +32,15 @@
     .logo {
       width: 28px;
       height: 28px;
+      border-radius: 6px;
     }
 
     .section {
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
 
     .section-title {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       color: #8b98a5;
       margin-bottom: 8px;
@@ -47,22 +48,107 @@
       letter-spacing: 0.5px;
     }
 
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .stat-card {
+      background: #1e2d3d;
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .stat-card.wide {
+      grid-column: span 2;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #e7e9ea;
+    }
+
+    .stat-value.accent {
+      color: #ef4444;
+    }
+
+    .stat-value.streak {
+      color: #f59e0b;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: #8b98a5;
+      margin-top: 4px;
+    }
+
+    .accuracy-bar {
+      width: 100%;
+      height: 6px;
+      background: #38444d;
+      border-radius: 3px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .accuracy-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ef4444, #f59e0b);
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+
+    .global-stats {
+      background: #1e2d3d;
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .global-stat-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid #38444d;
+    }
+
+    .global-stat-row:last-child {
+      border-bottom: none;
+    }
+
+    .global-stat-label {
+      color: #8b98a5;
+      font-size: 13px;
+    }
+
+    .global-stat-value {
+      font-weight: 600;
+      font-size: 13px;
+      color: #e7e9ea;
+    }
+
     .toggle-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 0;
+      padding: 10px 0;
       border-bottom: 1px solid #38444d;
     }
 
+    .toggle-row:last-child {
+      border-bottom: none;
+    }
+
     .toggle-label {
-      font-size: 15px;
+      font-size: 14px;
     }
 
     .toggle {
       position: relative;
-      width: 44px;
-      height: 24px;
+      width: 40px;
+      height: 22px;
     }
 
     .toggle input {
@@ -80,14 +166,14 @@
       bottom: 0;
       background-color: #38444d;
       transition: 0.2s;
-      border-radius: 24px;
+      border-radius: 22px;
     }
 
     .toggle-slider:before {
       position: absolute;
       content: "";
-      height: 18px;
-      width: 18px;
+      height: 16px;
+      width: 16px;
       left: 3px;
       bottom: 3px;
       background-color: white;
@@ -100,22 +186,22 @@
     }
 
     .toggle input:checked + .toggle-slider:before {
-      transform: translateX(20px);
+      transform: translateX(18px);
     }
 
     .threshold-row {
-      padding: 12px 0;
+      padding: 10px 0;
     }
 
     .threshold-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .threshold-value {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 600;
       color: #ef4444;
     }
@@ -131,74 +217,77 @@
 
     .threshold-slider::-webkit-slider-thumb {
       -webkit-appearance: none;
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
       border-radius: 50%;
       background: #ef4444;
       cursor: pointer;
     }
 
-    .threshold-slider::-moz-range-thumb {
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: #ef4444;
-      cursor: pointer;
-      border: none;
-    }
-
-    .threshold-hint {
+    .loading {
+      color: #8b98a5;
       font-size: 12px;
-      color: #8b98a5;
-      margin-top: 8px;
-    }
-
-    .stats {
-      background: #1e2d3d;
-      border-radius: 12px;
-      padding: 12px;
-    }
-
-    .stat-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px 0;
-    }
-
-    .stat-label {
-      color: #8b98a5;
-      font-size: 14px;
-    }
-
-    .stat-value {
-      font-weight: 600;
-      font-size: 14px;
-    }
-
-    .footer {
-      margin-top: 16px;
       text-align: center;
-      font-size: 12px;
-      color: #8b98a5;
+      padding: 8px;
     }
 
-    .footer a {
-      color: #ef4444;
-      text-decoration: none;
+    .streak-icon {
+      font-size: 16px;
+      margin-right: 4px;
     }
   </style>
 </head>
 <body>
   <div class="header">
-    <svg class="logo" viewBox="0 0 24 24" fill="#ef4444">
-      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-    </svg>
+    <img src="icons/icon48.png" class="logo" alt="SlopWatch">
     <h1>SlopWatch</h1>
   </div>
 
   <div class="section">
-    <div class="section-title">Settings</div>
+    <div class="section-title">Your Stats</div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value accent" id="userVotes">-</div>
+        <div class="stat-label">Slop Detected</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value streak"><span class="streak-icon">🔥</span><span id="userStreak">0</span></div>
+        <div class="stat-label">Day Streak</div>
+      </div>
+      <div class="stat-card wide">
+        <div class="stat-value" id="userAccuracy">--%</div>
+        <div class="stat-label">Accuracy (votes matching community consensus)</div>
+        <div class="accuracy-bar">
+          <div class="accuracy-fill" id="accuracyFill" style="width: 0%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
+  <div class="section">
+    <div class="section-title">Community Stats</div>
+    <div class="global-stats">
+      <div class="global-stat-row">
+        <span class="global-stat-label">Total Slop Detected</span>
+        <span class="global-stat-value" id="globalPosts">-</span>
+      </div>
+      <div class="global-stat-row">
+        <span class="global-stat-label">Confirmed Slop</span>
+        <span class="global-stat-value" id="globalConfirmed">-</span>
+      </div>
+      <div class="global-stat-row">
+        <span class="global-stat-label">Total Votes</span>
+        <span class="global-stat-value" id="globalVotes">-</span>
+      </div>
+      <div class="global-stat-row">
+        <span class="global-stat-label">Slop Hunters</span>
+        <span class="global-stat-value" id="globalUsers">-</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Settings</div>
     <div class="toggle-row">
       <span class="toggle-label">Auto-hide slop</span>
       <label class="toggle">
@@ -206,29 +295,13 @@
         <span class="toggle-slider"></span>
       </label>
     </div>
-
     <div class="threshold-row">
       <div class="threshold-header">
         <span class="toggle-label">Hide threshold</span>
         <span class="threshold-value" id="thresholdValue">5 votes</span>
       </div>
       <input type="range" class="threshold-slider" id="threshold" min="1" max="50" value="5">
-      <div class="threshold-hint">Posts with this many votes will be hidden</div>
     </div>
-  </div>
-
-  <div class="section">
-    <div class="section-title">Your Stats</div>
-    <div class="stats">
-      <div class="stat-row">
-        <span class="stat-label">Posts marked as slop</span>
-        <span class="stat-value" id="voteCount">0</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="footer">
-    Community-powered AI detection
   </div>
 
   <script src="popup.js"></script>

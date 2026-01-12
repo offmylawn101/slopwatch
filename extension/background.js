@@ -80,6 +80,15 @@ async function handleMessage(message) {
       return await apiRequest(`/status/${tweetId}/${userId}`);
     }
 
+    case 'GET_USER_STATS': {
+      const { userId } = message;
+      return await apiRequest(`/stats/user/${userId}`);
+    }
+
+    case 'GET_GLOBAL_STATS': {
+      return await apiRequest('/stats/global');
+    }
+
     default:
       throw new Error(`Unknown message type: ${message.type}`);
   }

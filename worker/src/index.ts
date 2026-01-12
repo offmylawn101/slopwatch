@@ -8,14 +8,38 @@ const app = new Hono();
 // Data file path
 const DATA_FILE = './data.json';
 
+// Accuracy threshold - posts with this many votes count as "confirmed slop"
+const ACCURACY_THRESHOLD = 3;
+
+// User stats interface
+interface UserStats {
+  totalVotes: number;
+  accurateVotes: number; // votes on posts that reached threshold
+  currentStreak: number;
+  longestStreak: number;
+  lastVoteDate: string; // YYYY-MM-DD
+}
+
 // In-memory store with persistence
 interface Store {
   counts: Record<string, number>;
   voters: Record<string, string[]>;
+  userStats: Record<string, UserStats>;
+  globalStats: {
+    totalVotes: number;
+    totalPosts: number;
+    confirmedSlop: number; // posts that reached threshold
+  };
   rateLimits: Record<string, { count: number; resetAt: number }>;
 }
 
-let store: Store = { counts: {}, voters: {}, rateLimits: {} };
+let store: Store = {
+  counts: {},
+  voters: {},
+  userStats: {},
+  globalStats: { totalVotes: 0, totalPosts: 0, confirmedSlop: 0 },
+  rateLimits: {}
+};
 
 // Load data from file
 function loadData() {
@@ -25,6 +49,43 @@ function loadData() {
       const parsed = JSON.parse(data);
       store.counts = parsed.counts || {};
       store.voters = parsed.voters || {};
+      store.userStats = parsed.userStats || {};
+      store.globalStats = parsed.globalStats || { totalVotes: 0, totalPosts: 0, confirmedSlop: 0 };
+
+      // Migrate: Calculate stats from existing data if not present
+      if (Object.keys(store.userStats).length === 0 && Object.keys(store.voters).length > 0) {
+        console.log('Migrating existing data to new stats format...');
+
+        // Calculate global stats
+        store.globalStats.totalPosts = Object.keys(store.counts).length;
+        store.globalStats.totalVotes = Object.values(store.counts).reduce((a, b) => a + b, 0);
+        store.globalStats.confirmedSlop = Object.values(store.counts).filter(c => c >= ACCURACY_THRESHOLD).length;
+
+        // Calculate user stats from voters
+        for (const [tweetId, voters] of Object.entries(store.voters)) {
+          const count = store.counts[tweetId] || 0;
+          const isConfirmed = count >= ACCURACY_THRESHOLD;
+
+          for (const voterId of voters) {
+            if (!store.userStats[voterId]) {
+              store.userStats[voterId] = {
+                totalVotes: 0,
+                accurateVotes: 0,
+                currentStreak: 1,
+                longestStreak: 1,
+                lastVoteDate: getToday()
+              };
+            }
+            store.userStats[voterId].totalVotes++;
+            if (isConfirmed) {
+              store.userStats[voterId].accurateVotes++;
+            }
+          }
+        }
+
+        saveData();
+        console.log('Migration complete.');
+      }
     } catch (e) {
       console.error('Failed to load data:', e);
     }
@@ -34,9 +95,60 @@ function loadData() {
 // Save data to file
 function saveData() {
   try {
-    writeFileSync(DATA_FILE, JSON.stringify({ counts: store.counts, voters: store.voters }, null, 2));
+    writeFileSync(DATA_FILE, JSON.stringify({
+      counts: store.counts,
+      voters: store.voters,
+      userStats: store.userStats,
+      globalStats: store.globalStats
+    }, null, 2));
   } catch (e) {
     console.error('Failed to save data:', e);
+  }
+}
+
+// Get today's date as YYYY-MM-DD
+function getToday(): string {
+  return new Date().toISOString().split('T')[0];
+}
+
+// Update user streak
+function updateStreak(userId: string): void {
+  const stats = store.userStats[userId];
+  if (!stats) return;
+
+  const today = getToday();
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+  if (stats.lastVoteDate === today) {
+    // Already voted today, no change
+    return;
+  } else if (stats.lastVoteDate === yesterday) {
+    // Consecutive day, increment streak
+    stats.currentStreak++;
+  } else {
+    // Streak broken, reset to 1
+    stats.currentStreak = 1;
+  }
+
+  stats.lastVoteDate = today;
+  if (stats.currentStreak > stats.longestStreak) {
+    stats.longestStreak = stats.currentStreak;
+  }
+}
+
+// Check and update accuracy for all voters when a post reaches threshold
+function checkAccuracyThreshold(tweetId: string): void {
+  const count = store.counts[tweetId] || 0;
+  const voters = store.voters[tweetId] || [];
+
+  // If this post just reached the threshold, credit all voters
+  if (count === ACCURACY_THRESHOLD) {
+    store.globalStats.confirmedSlop++;
+    for (const voterId of voters) {
+      if (store.userStats[voterId]) {
+        store.userStats[voterId].accurateVotes++;
+      }
+    }
   }
 }
 
@@ -198,6 +310,18 @@ app.post('/vote', async (c) => {
   const voters = store.voters[tweetId] || [];
   const voterIndex = voters.indexOf(userId);
   const hasVoted = voterIndex !== -1;
+  const isNewPost = !store.counts[tweetId];
+
+  // Initialize user stats if needed
+  if (!store.userStats[userId]) {
+    store.userStats[userId] = {
+      totalVotes: 0,
+      accurateVotes: 0,
+      currentStreak: 0,
+      longestStreak: 0,
+      lastVoteDate: ''
+    };
+  }
 
   let newCount: number;
 
@@ -205,15 +329,31 @@ app.post('/vote', async (c) => {
     // Remove vote
     voters.splice(voterIndex, 1);
     newCount = Math.max(0, (store.counts[tweetId] || 0) - 1);
+    store.userStats[userId].totalVotes--;
+    store.globalStats.totalVotes--;
   } else {
     // Add vote
     voters.push(userId);
     newCount = (store.counts[tweetId] || 0) + 1;
+    store.userStats[userId].totalVotes++;
+    store.globalStats.totalVotes++;
+
+    // Update streak
+    updateStreak(userId);
+
+    // Track new posts
+    if (isNewPost) {
+      store.globalStats.totalPosts++;
+    }
   }
 
   // Update store
   store.counts[tweetId] = newCount;
   store.voters[tweetId] = voters;
+
+  // Check if this vote pushed the post over the accuracy threshold
+  checkAccuracyThreshold(tweetId);
+
   saveData();
 
   return c.json({ count: newCount, voted: !hasVoted });
@@ -257,6 +397,48 @@ app.get('/status/:tweetId/:userId', (c) => {
   const voted = voters.includes(userId);
 
   return c.json({ count, voted });
+});
+
+// Get user stats
+app.get('/stats/user/:userId', (c) => {
+  const { userId } = c.req.param();
+
+  const stats = store.userStats[userId] || {
+    totalVotes: 0,
+    accurateVotes: 0,
+    currentStreak: 0,
+    longestStreak: 0,
+    lastVoteDate: ''
+  };
+
+  // Calculate accuracy percentage
+  const accuracy = stats.totalVotes > 0
+    ? Math.round((stats.accurateVotes / stats.totalVotes) * 100)
+    : 0;
+
+  // Check if streak is still active (voted today or yesterday)
+  const today = getToday();
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  const streakActive = stats.lastVoteDate === today || stats.lastVoteDate === yesterday;
+
+  return c.json({
+    totalVotes: stats.totalVotes,
+    accurateVotes: stats.accurateVotes,
+    accuracy,
+    currentStreak: streakActive ? stats.currentStreak : 0,
+    longestStreak: stats.longestStreak,
+    lastVoteDate: stats.lastVoteDate
+  });
+});
+
+// Get global stats
+app.get('/stats/global', (c) => {
+  return c.json({
+    totalVotes: store.globalStats.totalVotes,
+    totalPosts: store.globalStats.totalPosts,
+    confirmedSlop: store.globalStats.confirmedSlop,
+    totalUsers: Object.keys(store.userStats).length
+  });
 });
 
 // Load data on startup
