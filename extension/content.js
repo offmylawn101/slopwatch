@@ -218,6 +218,13 @@
       button.title = 'Mark as AI slop';
     }
 
+    // Color the icon if there are any votes
+    if (count > 0) {
+      button.classList.add('has-votes');
+    } else {
+      button.classList.remove('has-votes');
+    }
+
     countEl.textContent = count > 0 ? count : '';
   }
 

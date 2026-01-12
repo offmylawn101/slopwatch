@@ -39,6 +39,16 @@
   width: 18px;
   height: 18px;
   object-fit: contain;
+  filter: grayscale(100%) opacity(0.6);
+  transition: filter 0.2s ease;
+}
+
+.slopwatch-btn:hover .slopwatch-icon {
+  filter: grayscale(0%) opacity(1);
+}
+
+.slopwatch-btn.has-votes .slopwatch-icon {
+  filter: grayscale(0%) opacity(1);
 }
 
 .slopwatch-label {
