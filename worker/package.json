@@ -1,0 +1,17 @@
+{
+  "name": "slopwatch-api",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "dev": "tsx watch src/index.ts"
+  },
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.19.8",
+    "hono": "^4.11.3",
+    "tsx": "^4.21.0"
+  }
+}

@@ -1,0 +1,24 @@
+name = "slopwatch-api"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+account_id = "cb13f5c2beb4fdc7f377eed779f111b0"
+
+# KV Namespaces - create these with:
+# wrangler kv:namespace create VOTES
+# wrangler kv:namespace create VOTERS
+[[kv_namespaces]]
+binding = "VOTES"
+id = "bfd2ef106eaa4c35b36a8cd96869d3ca"
+
+[[kv_namespaces]]
+binding = "VOTERS"
+id = "0b17df50c82b4af88985937886e910ba"
+
+# For local development, use preview IDs
+# [[kv_namespaces]]
+# binding = "VOTES"
+# id = "YOUR_VOTES_KV_ID"
+# preview_id = "YOUR_PREVIEW_ID"
+
+[vars]
+RATE_LIMIT_PER_MINUTE = "30"
