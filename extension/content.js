@@ -86,6 +86,82 @@
     return container;
   }
 
+  // Disintegration animation
+  function disintegrateTweet(tweetElement) {
+    const wrapper = tweetElement.closest('[data-testid="cellInnerDiv"]') || tweetElement;
+    const rect = wrapper.getBoundingClientRect();
+
+    // Add disintegrating class for the blur/fade animation
+    wrapper.classList.add('slopwatch-disintegrating');
+
+    // Create particle container
+    const particleContainer = document.createElement('div');
+    particleContainer.className = 'slopwatch-particles';
+    particleContainer.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: visible;
+    `;
+    wrapper.style.position = 'relative';
+    wrapper.appendChild(particleContainer);
+
+    // Create particles
+    const particleCount = 30;
+    for (let i = 0; i < particleCount; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'slopwatch-particle';
+
+      // Random position within the element
+      const startX = Math.random() * rect.width;
+      const startY = Math.random() * rect.height;
+
+      // Random direction (mostly upward and outward)
+      const tx = (Math.random() - 0.5) * 200;
+      const ty = -50 - Math.random() * 150;
+
+      particle.style.cssText = `
+        left: ${startX}px;
+        top: ${startY}px;
+        --tx: ${tx}px;
+        --ty: ${ty}px;
+        animation-delay: ${Math.random() * 0.3}s;
+        opacity: ${0.6 + Math.random() * 0.4};
+      `;
+
+      particleContainer.appendChild(particle);
+    }
+
+    // After animation, hide the tweet and show notice
+    setTimeout(() => {
+      wrapper.classList.remove('slopwatch-disintegrating');
+      wrapper.classList.add('slopwatch-hidden');
+      particleContainer.remove();
+
+      // Add the hidden notice
+      const cached = voteCache.get(tweetElement.dataset.slopwatchTweetId);
+      const count = cached ? cached.count : 1;
+
+      if (!wrapper.querySelector('.slopwatch-hidden-notice')) {
+        const notice = document.createElement('div');
+        notice.className = 'slopwatch-hidden-notice';
+        notice.innerHTML = `
+          <span>Marked as slop (${count} vote${count !== 1 ? 's' : ''})</span>
+          <button class="slopwatch-show-btn">Show anyway</button>
+        `;
+        notice.querySelector('.slopwatch-show-btn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          wrapper.classList.remove('slopwatch-hidden');
+          notice.remove();
+        });
+        wrapper.insertBefore(notice, wrapper.firstChild);
+      }
+    }, 700);
+  }
+
   // Handle vote button click
   async function handleVote(tweetId, container) {
     const button = container.querySelector('.slopwatch-btn');
@@ -98,6 +174,12 @@
 
     updateButtonState(container, newVoted, newCount);
     voteCache.set(tweetId, { count: newCount, voted: newVoted });
+
+    // If voting as slop, trigger disintegration
+    const tweet = container.closest('article[data-testid="tweet"]');
+    if (newVoted && tweet) {
+      disintegrateTweet(tweet);
+    }
 
     try {
       const response = await chrome.runtime.sendMessage({
@@ -115,10 +197,6 @@
         // Update with server response
         voteCache.set(tweetId, { count: response.count, voted: response.voted });
         updateButtonState(container, response.voted, response.count);
-
-        // Check if we should hide this tweet now
-        const tweet = container.closest('article[data-testid="tweet"]');
-        if (tweet) evaluateHiding(tweet, tweetId, response.count);
       }
     } catch (err) {
       // Revert on error
