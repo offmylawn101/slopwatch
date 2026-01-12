@@ -38,7 +38,7 @@
 .slopwatch-icon {
   width: 18px;
   height: 18px;
-  fill: currentColor;
+  object-fit: contain;
 }
 
 .slopwatch-label {
